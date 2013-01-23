@@ -31,6 +31,13 @@ public class Leaptris extends Listener implements KeyListener {
 				BufferedImage image = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_ARGB);
 				Graphics g = image.getGraphics();
 
+				g.setColor(Color.blue);
+				for (LeaptrisAction action : LeaptrisAction.values()) {
+					if (action.getWidth() != 0 && action.getHeight() != 0) {
+						g.fillRect(action.getX(), action.getY(), action.getWidth(), action.getHeight());
+					}
+				}
+
 				Frame frame = controller.frame();
 
 				if (!frame.hands().empty()) {
@@ -61,12 +68,20 @@ public class Leaptris extends Listener implements KeyListener {
 						int y = (int) pos.getY();
 
 						x += 200;
+						x = (int) (5.0 * x / 4);
 						y = 500 - y;
 
-						System.out.println(x + ", " + y);
+						// range of (x,y) is (0,0) to (500, 500)
+
+						// adjust y for comfort
+						y -= 100;
+
+//						System.out.println(x + ", " + y);
 
 						g.setColor(Color.red);
 						g.fillOval(x, y, 20, 20);
+
+						processAction(x, y);
 					}
 				}
 
@@ -90,6 +105,30 @@ public class Leaptris extends Listener implements KeyListener {
 		}
 	}
 
+	public void processAction(int x, int y) {
+		boolean found = false;
+		for (LeaptrisAction action : LeaptrisAction.values()) {
+			if (action.getWidth() == 0) {
+				continue;
+			}
+
+			if (x >= action.getX() && y >= action.getY() && x <= action.getX() + action.getWidth()
+					&& y <= action.getY() + action.getHeight()) {
+				found = true;
+				if (this.action != action) {
+					this.action = action;
+//					System.out.println("Pressing Key");
+					System.out.println(action.name());
+					pressKey(action.getKey());
+				}
+				break;
+			}
+		}
+		if (!found && this.action != LeaptrisAction.NONE) {
+			action = LeaptrisAction.NONE;
+		}
+	}
+
 	public static void sleep(int ms) {
 		try {
 			Thread.sleep(ms);
@@ -100,6 +139,7 @@ public class Leaptris extends Listener implements KeyListener {
 
 	public void pressKey(int keyCode) {
 		robot.keyPress(keyCode);
+		sleep(50);
 		robot.keyRelease(keyCode);
 	}
 
